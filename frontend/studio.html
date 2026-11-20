@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Siq'iy Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:        #080c10;
+      --panel:     #0d1117;
+      --panel2:    #111820;
+      --border:    #1e2d3d;
+      --accent:    #00d4ff;
+      --accent2:   #ff6b35;
+      --text:      #c9d1d9;
+      --text-dim:  #4a5568;
+      --text-bright: #e6edf3;
+      --mono:      'Share Tech Mono', monospace;
+      --sans:      'Rajdhani', sans-serif;
+      --glow:      0 0 12px rgba(0,212,255,0.4);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 0 24px;
+      height: 52px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+      flex-shrink: 0;
+    }
+
+    .logo {
+      font-family: var(--mono);
+      font-size: 18px;
+      letter-spacing: 4px;
+      color: var(--accent);
+      text-shadow: var(--glow);
+    }
+
+    .logo-sub {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--text-dim);
+      letter-spacing: 2px;
+    }
+
+    .header-sep { width: 1px; height: 28px; background: var(--border); }
+
+    .btn-copy {
+      margin-left: auto;
+      padding: 7px 18px;
+      background: var(--accent);
+      border: none;
+      color: #000;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: bold;
+    }
+    .btn-copy:hover { background: #00eeff; box-shadow: var(--glow); }
+    .btn-copy.copied { background: #00ff88; }
+
+    .layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Controls panel ── */
+    .controls {
+      width: 300px;
+      flex-shrink: 0;
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 0 0 20px;
+    }
+
+    .controls::-webkit-scrollbar { width: 4px; }
+    .controls::-webkit-scrollbar-thumb { background: var(--border); }
+
+    .section {
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px;
+    }
+
+    .section-title {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .field {
+      margin-bottom: 10px;
+    }
+
+    .field label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .field input[type="text"],
+    .field input[type="number"],
+    .field select {
+      width: 100%;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 6px 8px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .field input:focus, .field select:focus {
+      border-color: var(--accent);
+    }
+
+    .field input[type="color"] {
+      width: 100%;
+      height: 32px;
+      border: 1px solid var(--border);
+      background: var(--panel2);
+      cursor: pointer;
+      padding: 2px;
+    }
+
+    .field input[type="checkbox"] {
+      accent-color: var(--accent);
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
+    }
+
+    .field-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .field-row .field { flex: 1; }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .toggle-row label {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+      cursor: pointer;
+    }
+
+    .shape-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .shape-btn {
+      padding: 8px 4px;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .shape-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .shape-btn.active {
+      background: rgba(0,212,255,0.1);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Link rows */
+    .link-row {
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      padding: 8px;
+      margin-bottom: 6px;
+      position: relative;
+    }
+
+    .link-row .remove-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 12px;
+      padding: 0 4px;
+    }
+    .link-row .remove-btn:hover { color: var(--accent2); }
+
+    .add-btn {
+      width: 100%;
+      padding: 6px;
+      background: transparent;
+      border: 1px dashed var(--border);
+      color: var(--text-dim);
+      font-family: var(--mono);
+      font-size: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 1px;
+    }
+    .add-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Preview ── */
+    .preview {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 20% 80%, rgba(0,212,255,0.03) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255,107,53,0.03) 0%, transparent 50%),
+        var(--bg);
+    }
+
+    .preview-header {
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: var(--text-dim);
+      background: var(--panel);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .preview-area {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: auto;
+    }
+
+    #preview-svg { display: block; }
+
+    /* ── YAML output ── */
+    .yaml-panel {
+      width: 280px;
+      flex-shrink: 0;
+      background: var(--panel);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .yaml-header {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    #yaml-output {
+      flex: 1;
+      background: var(--panel2);
+      border: none;
+      color: #7ec8e3;
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1.6;
+      padding: 16px;
+      resize: none;
+      outline: none;
+      overflow-y: auto;
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">SIQ'IY STUDIO</div>
+    <div class="logo-sub">DISEÑADOR DE OBJETOS</div>
+  </div>
+  <div class="header-sep"></div>
+  <span id="from-label" style="font-family:var(--mono);font-size:10px;color:var(--text-dim);"></span>
+  <button class="btn-copy" onclick="copyYaml()" id="copy-btn">✦ COPIAR YAML</button>
+</header>
+
+<div class="layout">
+
+  <!-- ── Controls ── -->
+  <div class="controls">
+
+    <!-- Shape selector -->
+    <div class="section">
+      <div class="section-title" id="sec-shape-title">// shape</div>
+      <div class="shape-grid">
+        <button class="shape-btn active" onclick="setShape('square')" id="sh-square">▭ square</button>
+        <button class="shape-btn" onclick="setShape('circle')" id="sh-circle">◯ circle</button>
+        <button class="shape-btn" onclick="setShape('polygon')" id="sh-polygon">⬡ polygon</button>
+        <button class="shape-btn" onclick="setShape('line')" id="sh-line">╱ line</button>
+        <button class="shape-btn" onclick="setShape('arc')" id="sh-arc">◜ arc</button>
+        <button class="shape-btn" onclick="setShape('text')" id="sh-text">T text</button>
+        <button class="shape-btn" onclick="setShape('image')" id="sh-image">🖼 image</button>
+      </div>
+    </div>
+
+    <!-- Base -->
+    <div class="section">
+      <div class="section-title" id="sec-base-title">// base</div>
+      <div class="field-row">
+        <div class="field">
+          <label>ID</label>
+          <input type="number" id="f-id" value="1" min="1" onchange="update()"/>
+        </div>
+        <div class="field">
+          <label>NAME</label>
+          <input type="text" id="f-name" value="Objeto" onchange="update()"/>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>WIDTH (px)</label>
+          <input type="number" id="f-width" value="60" min="1" onchange="update()"/>
+        </div>
+        <div class="field">
+          <label>HEIGHT (px)</label>
+          <input type="number" id="f-height" value="60" min="1" onchange="update()"/>
+        </div>
+      </div>
+      <div class="field">
+        <label>LAYER</label>
+        <input type="text" id="f-layer" value="main" onchange="update()"/>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>POSITION X (px)</label>
+          <input type="number" id="f-pos-x" value="100" onchange="update()"/>
+        </div>
+        <div class="field">
+          <label>POSITION Y (px)</label>
+          <input type="number" id="f-pos-y" value="100" onchange="update()"/>
+        </div>
+      </div>
+      <div class="field">
+        <label>FROM (origin | id_N)</label>
+        <input type="text" id="f-from" value="origin" onchange="update()"/>
+      </div>
+      <div class="field">
+        <label>ANGLE (°)</label>
+        <input type="number" id="f-angle" value="0" onchange="update()"/>
+      </div>
+    </div>
+
+    <!-- Style -->
+    <div class="section" id="sec-style">
+      <div class="section-title" id="sec-style-title">// estilo</div>
+      <div class="field-row">
+        <div class="field">
+          <label>LINE COLOR</label>
+          <input type="color" id="f-line-color" value="#00d4ff" onchange="update()"/>
+        </div>
+        <div class="field">
+          <label>FILL COLOR</label>
+          <input type="color" id="f-fill-color" value="#0a0a1a" onchange="update()"/>
+        </div>
+      </div>
+      <div class="toggle-row">
+        <input type="checkbox" id="f-no-fill" onchange="update()"/>
+        <label for="f-no-fill">SIN FILL (none)</label>
+      </div>
+      <div class="field">
+        <label>FILL TRANSPARENCY (0-100)</label>
+        <input type="number" id="f-transparency" value="0" min="0" max="100" onchange="update()"/>
+      </div>
+    </div>
+
+    <!-- Shape-specific -->
+    <div class="section" id="sec-specific">
+      <div class="section-title" id="sec-specific-title">// específico</div>
+      <div id="specific-fields"></div>
+    </div>
+
+    <!-- Glow -->
+    <div class="section">
+      <div class="section-title" id="sec-glow-title">// glow</div>
+      <div class="toggle-row">
+        <input type="checkbox" id="f-glow" onchange="update()"/>
+        <label for="f-glow" id="lbl-activate-glow">ACTIVAR GLOW</label>
+      </div>
+      <div id="glow-fields" style="display:none;">
+        <div class="field-row">
+          <div class="field">
+            <label>COLOR</label>
+            <input type="color" id="f-glow-color" value="#00d4ff" onchange="update()"/>
+          </div>
+          <div class="field">
+            <label>INTENSITY</label>
+            <input type="number" id="f-glow-intensity" value="10" min="1" max="50" onchange="update()"/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Label -->
+    <div class="section">
+      <div class="section-title" id="sec-label-title">// label</div>
+      <div class="toggle-row">
+        <input type="checkbox" id="f-label" onchange="update()"/>
+        <label for="f-label" id="lbl-add-label">AGREGAR ETIQUETA</label>
+      </div>
+      <div id="label-fields" style="display:none;">
+        <div class="field">
+          <label>TEXT</label>
+          <input type="text" id="f-label-text" value="" oninput="update()"/>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>COLOR</label>
+            <input type="color" id="f-label-color" value="#aaaaaa" onchange="update()"/>
+          </div>
+          <div class="field">
+            <label>SIZE (px)</label>
+            <input type="number" id="f-label-size" value="11" min="6" onchange="update()"/>
+          </div>
+        </div>
+        <div class="field">
+          <label>FONT</label>
+          <input type="text" id="f-label-font" value="monospace" onchange="update()"/>
+        </div>
+        <div class="toggle-row">
+          <input type="checkbox" id="f-label-bg" onchange="update()"/>
+          <label for="f-label-bg">BACKGROUND (rect semitransparente)</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Links -->
+    <div class="section">
+      <div class="section-title" id="sec-links-title">// links</div>
+      <div id="links-container"></div>
+      <button class="add-btn" onclick="addLink()" id="btn-add-link">+ AGREGAR LINK</button>
+    </div>
+
+  </div>
+
+  <!-- ── Preview ── -->
+  <div class="preview">
+    <div class="preview-header">
+      <span id="sec-preview-title">// vista previa</span>
+      <div class="spinner" id="spinner"></div>
+    </div>
+    <div class="preview-area">
+      <div id="preview-svg"></div>
+    </div>
+  </div>
+
+  <!-- ── YAML output ── -->
+  <div class="yaml-panel">
+    <div class="yaml-header" id="sec-yaml-title">// yaml generado</div>
+    <textarea id="yaml-output" readonly></textarea>
+  </div>
+
+</div>
+
+<script>
+  // ── State ──────────────────────────────────────────────────────
+  const params = new URLSearchParams(window.location.search);
+  const fromFile = params.get('from');
+  const nextId = parseInt(params.get('next_id') || '1');
+  const editId = params.get('edit_id') ? parseInt(params.get('edit_id')) : null;
+
+  let currentShape = 'square';
+  let linkCounter = 0;
+  let previewTimer = null;
+
+  // Init
+  document.getElementById('f-id').value = nextId;
+  if (fromFile) {
+    document.getElementById('from-label').textContent = editId
+      ? `editando #${editId} de: ${fromFile}`
+      : `desde: ${fromFile}`;
+  }
+
+  // ── Shape selector ──────────────────────────────────────────────
+  function setShape(shape) {
+    currentShape = shape;
+    document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`sh-${shape}`)?.classList.add('active');
+    renderSpecificFields();
+    update();
+  }
+
+  function renderSpecificFields() {
+    const el = document.getElementById('specific-fields');
+    const styleEl = document.getElementById('sec-style');
+
+    if (currentShape === 'text') {
+      styleEl.style.display = 'none';
+      el.innerHTML = `
+        <div class="field"><label>TEXT</label>
+          <input type="text" id="sf-text" value="Text" oninput="update()"/></div>
+        <div class="field-row">
+          <div class="field"><label>SIZE (px)</label>
+            <input type="number" id="sf-size" value="14" min="6" onchange="update()"/></div>
+          <div class="field"><label>COLOR</label>
+            <input type="color" id="sf-color" value="#ffffff" onchange="update()"/></div>
+        </div>
+        <div class="field"><label>FONT</label>
+          <input type="text" id="sf-font" value="monospace" onchange="update()"/></div>
+        <div class="field"><label>${t('studio.fields.orientation')}</label>
+          <select id="sf-orientation" onchange="update()">
+            <option value="horizontal">horizontal</option>
+            <option value="vertical">vertical</option>
+          </select></div>
+        <div class="toggle-row">
+          <input type="checkbox" id="sf-multiline" onchange="update()"/>
+          <label for="sf-multiline">${t('studio.fields.multiline')}</label></div>
+        <div class="toggle-row">
+          <input type="checkbox" id="sf-bg" onchange="update()"/>
+          <label for="sf-bg">${t('studio.fields.background')}</label></div>`;
+    } else if (currentShape === 'polygon') {
+      styleEl.style.display = '';
+      el.innerHTML = `
+        <div class="field"><label>${t('studio.fields.sides')}</label>
+          <input type="number" id="sf-sides" value="6" min="3" max="12" onchange="update()"/></div>`;
+    } else if (currentShape === 'line') {
+      styleEl.style.display = 'none';
+      el.innerHTML = `
+        <div class="field"><label>LENGTH (px)</label>
+          <input type="number" id="sf-long" value="80" min="1" onchange="update()"/></div>
+        <div class="field"><label>STROKE WIDTH</label>
+          <input type="number" id="sf-stroke" value="2" min="1" onchange="update()"/></div>
+        <div class="field"><label>LINE COLOR</label>
+          <input type="color" id="sf-line-color" value="#00d4ff" onchange="update()"/></div>
+        <div class="field-row">
+          <div class="field"><label>EXTREME 1</label>
+            <select id="sf-ext1" onchange="update()">
+              <option value="null">null</option>
+              <option value="arrow_out">arrow_out</option>
+              <option value="arrow_in">arrow_in</option>
+              <option value="dot">dot</option>
+            </select></div>
+          <div class="field"><label>EXTREME 2</label>
+            <select id="sf-ext2" onchange="update()">
+              <option value="null">null</option>
+              <option value="arrow_out">arrow_out ✓</option>
+              <option value="arrow_in">arrow_in</option>
+              <option value="dot">dot</option>
+            </select></div>
+        </div>
+        <div class="toggle-row">
+          <input type="checkbox" id="sf-curly" onchange="update()"/>
+          <label for="sf-curly">${t('studio.fields.curly')}</label></div>
+        <div class="field-row" id="curly-fields" style="display:none;">
+          <div class="field"><label>WAVE LENGTH (px)</label>
+            <input type="number" id="sf-wave-length" value="20" min="2" onchange="update()"/></div>
+          <div class="field"><label>WAVE HEIGHT (px)</label>
+            <input type="number" id="sf-wave-height" value="6" min="1" onchange="update()"/></div>
+        </div>`;
+      document.getElementById('sf-ext2').value = 'arrow_out';
+    } else if (currentShape === 'arc') {
+      styleEl.style.display = '';
+      el.innerHTML = `
+        <div class="field-row">
+          <div class="field"><label>ARC LENGTH (°)</label>
+            <input type="number" id="sf-arc-length" value="270" min="1" max="359" onchange="update()"/></div>
+          <div class="field"><label>${t('studio.fields.start_angle')}</label>
+            <input type="number" id="sf-arc-angle" value="0" onchange="update()"/></div>
+        </div>
+        <div class="field"><label>STROKE WIDTH</label>
+          <input type="number" id="sf-stroke" value="2" min="1" onchange="update()"/></div>
+        <div class="toggle-row">
+          <input type="checkbox" id="sf-pizza" onchange="update()"/>
+          <label for="sf-pizza">${t('studio.fields.pizza')}</label></div>`;
+    } else if (currentShape === 'image') {
+      styleEl.style.display = 'none';
+      el.innerHTML = `
+        <div class="field"><label>${t('studio.fields.file_images')}</label>
+          <input type="text" id="sf-image" value="imagen.png" oninput="update()"/></div>`;
+    } else {
+      // square, circle, rectangle
+      styleEl.style.display = '';
+      el.innerHTML = '';
+    }
+  }
+
+  // ── Build object spec ───────────────────────────────────────────
+  function buildSpec() {
+    const id = parseInt(document.getElementById('f-id').value) || 1;
+    const name = document.getElementById('f-name').value || 'Objeto';
+    const width = parseInt(document.getElementById('f-width').value) || 60;
+    const height = parseInt(document.getElementById('f-height').value) || 60;
+    const layer = document.getElementById('f-layer').value || 'main';
+    const angle = parseFloat(document.getElementById('f-angle').value) || 0;
+    const posX = parseInt(document.getElementById('f-pos-x').value) || 0;
+    const posY = parseInt(document.getElementById('f-pos-y').value) || 0;
+    const fromRef = document.getElementById('f-from').value || 'origin';
+    const lineColor = document.getElementById('f-line-color').value;
+    const fillColor = document.getElementById('f-no-fill').checked
+      ? 'none'
+      : document.getElementById('f-fill-color').value;
+    const transparency = parseInt(document.getElementById('f-transparency').value) || 0;
+    const hasGlow = document.getElementById('f-glow').checked;
+    const hasLabel = document.getElementById('f-label').checked;
+
+    const spec = {
+      shape: currentShape,
+      height, width,
+      position: [posX, posY],
+      from: fromRef,
+      angle,
+    };
+
+    if (currentShape === 'text') {
+      spec.text = document.getElementById('sf-text')?.value || 'Texto';
+      spec.size = parseInt(document.getElementById('sf-size')?.value) || 14;
+      spec.color = document.getElementById('sf-color')?.value || '#ffffff';
+      spec.font = document.getElementById('sf-font')?.value || 'monospace';
+      spec.orientation = document.getElementById('sf-orientation')?.value || 'horizontal';
+      spec.multiline = document.getElementById('sf-multiline')?.checked || false;
+      spec.background = document.getElementById('sf-bg')?.checked || false;
+      delete spec.line_color;
+      delete spec.fill_color;
+    } else if (currentShape === 'line') {
+      spec.long = parseInt(document.getElementById('sf-long')?.value) || 80;
+      spec.stroke_width = parseInt(document.getElementById('sf-stroke')?.value) || 2;
+      spec.line_color = document.getElementById('sf-line-color')?.value || '#00d4ff';
+      spec.extreme_1 = document.getElementById('sf-ext1')?.value || 'null';
+      spec.extreme_2 = document.getElementById('sf-ext2')?.value || 'null';
+      const isCurly = document.getElementById('sf-curly')?.checked || false;
+      if (isCurly) {
+        spec.curly = true;
+        spec.wave_length = parseInt(document.getElementById('sf-wave-length')?.value) || 20;
+        spec.wave_height = parseInt(document.getElementById('sf-wave-height')?.value) || 6;
+      }
+    } else if (currentShape === 'arc') {
+      spec.arc_length = parseInt(document.getElementById('sf-arc-length')?.value) || 270;
+      spec.angle = parseInt(document.getElementById('sf-arc-angle')?.value) || 0;
+      spec.stroke_width = parseInt(document.getElementById('sf-stroke')?.value) || 2;
+      spec.pizza = document.getElementById('sf-pizza')?.checked || false;
+      spec.line_color = lineColor;
+      spec.fill_color = fillColor;
+      spec.fill_transparency = transparency;
+    } else if (currentShape === 'polygon') {
+      spec.sides = parseInt(document.getElementById('sf-sides')?.value) || 6;
+      spec.line_color = lineColor;
+      spec.fill_color = fillColor;
+      spec.fill_transparency = transparency;
+    } else if (currentShape === 'image') {
+      spec.image = document.getElementById('sf-image')?.value || 'imagen.png';
+    } else {
+      spec.line_color = lineColor;
+      spec.fill_color = fillColor;
+      spec.fill_transparency = transparency;
+    }
+
+    if (hasGlow) {
+      spec.glow = {
+        color: document.getElementById('f-glow-color').value,
+        intensity: parseInt(document.getElementById('f-glow-intensity').value) || 10,
+      };
+    }
+
+    const label = hasLabel ? {
+      text: document.getElementById('f-label-text').value || name,
+      color: document.getElementById('f-label-color').value,
+      size: parseInt(document.getElementById('f-label-size').value) || 11,
+      font: document.getElementById('f-label-font').value || 'monospace',
+      background: document.getElementById('f-label-bg')?.checked || false,
+    } : null;
+
+    // Links
+    const links = [];
+    document.querySelectorAll('.link-row').forEach(row => {
+      const fromSide = row.querySelector('.lnk-from-side')?.value || '';
+      const toSide = row.querySelector('.lnk-to-side')?.value || '';
+      const fromOffset = parseFloat(row.querySelector('.lnk-from-offset')?.value) || 0;
+      const toOffset = parseFloat(row.querySelector('.lnk-to-offset')?.value) || 0;
+      links.push({
+        to: `id_${row.querySelector('.lnk-to').value || 2}`,
+        style: row.querySelector('.lnk-style').value,
+        color: row.querySelector('.lnk-color').value,
+        width: parseFloat(row.querySelector('.lnk-width').value) || 1,
+        from_anchor: row.querySelector('.lnk-from-anchor').value,
+        to_anchor: row.querySelector('.lnk-to-anchor').value,
+        from_side: fromSide || null,
+        to_side: toSide || null,
+        from_offset: fromOffset || null,
+        to_offset: toOffset || null,
+      });
+    });
+
+    return { id, name, layer, spec, label, links };
+  }
+
+  // ── Generate YAML ───────────────────────────────────────────────
+  // Indentación: 4 espacios antes del guión inicial (nivel "objects:" del diagrama)
+  function buildYaml({ id, name, layer, spec, label, links }) {
+    const base   = '    ';   // 4 espacios antes de "-"
+    const ind1   = base + '  ';   // campos del objeto (id, name, layer, specs:)
+    const ind2   = base + '    '; // dentro de specs: / link:
+    const ind3   = base + '      '; // dentro de glow: / label: / cada item de links:
+    const ind4   = base + '        '; // atributos de cada link en la lista
+
+    let lines = [
+      `${base}- id: ${id}`,
+      `${ind1}name: ${name}`,
+    ];
+
+    if (layer && layer !== 'main') {
+      lines.push(`${ind1}layer: ${layer}`);
+    }
+
+    lines.push(`${ind1}specs:`);
+
+    const specLines = (obj, indent) => {
+      return Object.entries(obj).map(([k, v]) => {
+        if (k === 'glow' || k === 'label') return null;
+        if (k === 'background' && !v) return null;  // omitir background: false (es el default)
+        if (k === 'position') return `${indent}${k}: [${v[0]}, ${v[1]}]`;
+        if (k === 'from') return `${indent}from: ${v}`;
+        if (k === 'from_ref') return null;
+        if (typeof v === 'string') return `${indent}${k}: "${v}"`;
+        if (typeof v === 'boolean') return `${indent}${k}: ${v}`;
+        return `${indent}${k}: ${v}`;
+      }).filter(Boolean);
+    };
+
+    const outputSpec = {...spec};
+    delete outputSpec.glow;
+
+    lines.push(...specLines(outputSpec, ind2));
+
+    if (spec.glow) {
+      lines.push(`${ind2}glow:`);
+      lines.push(`${ind3}color: "${spec.glow.color}"`);
+      lines.push(`${ind3}intensity: ${spec.glow.intensity}`);
+    }
+
+    if (label) {
+      lines.push(`${ind2}label:`);
+      lines.push(`${ind3}text: "${label.text}"`);
+      lines.push(`${ind3}color: "${label.color}"`);
+      lines.push(`${ind3}size: ${label.size}`);
+      lines.push(`${ind3}font: ${label.font}`);
+      if (label.background) lines.push(`${ind3}background: true`);
+    }
+
+    const linkAttrLines = (lnk, prefix) => {
+      const ll = [
+        `${prefix}to: ${lnk.to}`,
+        `${prefix}style: ${lnk.style}`,
+        `${prefix}color: "${lnk.color}"`,
+        `${prefix}width: ${lnk.width}`,
+      ];
+      if (lnk.from_side) ll.push(`${prefix}from_side: ${lnk.from_side}`);
+      else ll.push(`${prefix}from_anchor: ${lnk.from_anchor}`);
+      if (lnk.to_side) ll.push(`${prefix}to_side: ${lnk.to_side}`);
+      else ll.push(`${prefix}to_anchor: ${lnk.to_anchor}`);
+      if (lnk.from_offset) ll.push(`${prefix}from_offset: ${lnk.from_offset}`);
+      if (lnk.to_offset) ll.push(`${prefix}to_offset: ${lnk.to_offset}`);
+      return ll;
+    };
+
+    if (links.length === 1) {
+      lines.push(`${ind1}link:`);
+      lines.push(...linkAttrLines(links[0], ind2));
+    } else if (links.length > 1) {
+      lines.push(`${ind1}links:`);
+      links.forEach(lnk => {
+        lines.push(`${ind2}- to: ${lnk.to}`);
+        lines.push(...linkAttrLines(lnk, ind4).slice(1));
+      });
+    }
+
+    return lines.join('\n');
+  }
+
+  // ── Preview ─────────────────────────────────────────────────────
+  async function refreshPreview(objData) {
+    const spinner = document.getElementById('spinner');
+    spinner.style.display = 'block';
+    try {
+      const spec = {...objData.spec, position: [100, 100], from_ref: 'origin'};
+      const payload = {
+        object: {
+          id: 1,
+          name: objData.name,
+          specs: spec,
+        },
+        links_preview: (objData.links || []).map(lnk => ({
+          to: lnk.to,
+          style: lnk.style,
+          color: lnk.color,
+          width: lnk.width,
+          from_anchor: lnk.from_anchor,
+          to_anchor: lnk.to_anchor,
+          from_side: lnk.from_side || null,
+          to_side: lnk.to_side || null,
+          from_offset: lnk.from_offset || null,
+          to_offset: lnk.to_offset || null,
+        })),
+      };
+      if (objData.label) payload.object.specs.label = objData.label;
+      const res = await fetch('/api/preview', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        const svg = await res.text();
+        document.getElementById('preview-svg').innerHTML = svg;
+      }
+    } catch(e) {
+      console.error('Preview error:', e);
+    }
+    spinner.style.display = 'none';
+  }
+
+  // ── Update (debounced) ──────────────────────────────────────────
+  function update() {
+    // Toggle glow fields
+    document.getElementById('glow-fields').style.display =
+      document.getElementById('f-glow').checked ? '' : 'none';
+
+    // Toggle label fields
+    document.getElementById('label-fields').style.display =
+      document.getElementById('f-label').checked ? '' : 'none';
+
+    // Toggle curly fields (line shape)
+    const curlyEl = document.getElementById('sf-curly');
+    const curlyFields = document.getElementById('curly-fields');
+    if (curlyEl && curlyFields) {
+      curlyFields.style.display = curlyEl.checked ? '' : 'none';
+    }
+
+    const data = buildSpec();
+    document.getElementById('yaml-output').value = buildYaml(data);
+
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(() => refreshPreview(data), 300);
+  }
+
+  // ── Links ───────────────────────────────────────────────────────
+  function addLink() {
+    const id = ++linkCounter;
+    const container = document.getElementById('links-container');
+    const div = document.createElement('div');
+    div.className = 'link-row';
+    div.dataset.linkId = id;
+    div.innerHTML = `
+      <button class="remove-btn" onclick="removeLink(${id})">✕</button>
+      <div class="field-row">
+        <div class="field"><label>TO ID</label>
+          <input type="number" class="lnk-to" value="2" min="1" onchange="update()"/></div>
+        <div class="field"><label>COLOR</label>
+          <input type="color" class="lnk-color" value="#ffffff" onchange="update()"/></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>STYLE</label>
+          <select class="lnk-style" onchange="update()">
+            <option value="continuous">continuous</option>
+            <option value="dashed">dashed</option>
+            <option value="dotted">dotted</option>
+          </select></div>
+        <div class="field"><label>WIDTH</label>
+          <input type="number" class="lnk-width" value="1" min="0.5" step="0.5" onchange="update()"/></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>FROM ANCHOR</label>
+          <select class="lnk-from-anchor" onchange="update()">
+            <option value="border">border</option>
+            <option value="center">center</option>
+          </select></div>
+        <div class="field"><label>TO ANCHOR</label>
+          <select class="lnk-to-anchor" onchange="update()">
+            <option value="border">border</option>
+            <option value="center">center</option>
+          </select></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>FROM SIDE (N/S/E/W)</label>
+          <select class="lnk-from-side" onchange="update()">
+            <option value="">auto</option>
+            <option value="N">N</option>
+            <option value="S">S</option>
+            <option value="E">E</option>
+            <option value="W">W</option>
+          </select></div>
+        <div class="field"><label>TO SIDE (N/S/E/W)</label>
+          <select class="lnk-to-side" onchange="update()">
+            <option value="">auto</option>
+            <option value="N">N</option>
+            <option value="S">S</option>
+            <option value="E">E</option>
+            <option value="W">W</option>
+          </select></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>FROM OFFSET (-0.5 to 0.5)</label>
+          <input type="number" class="lnk-from-offset" value="0" min="-0.5" max="0.5" step="0.1" onchange="update()"/></div>
+        <div class="field"><label>TO OFFSET</label>
+          <input type="number" class="lnk-to-offset" value="0" min="-0.5" max="0.5" step="0.1" onchange="update()"/></div>
+      </div>`;
+    container.appendChild(div);
+    update();
+  }
+
+  function removeLink(id) {
+    document.querySelector(`[data-link-id="${id}"]`)?.remove();
+    update();
+  }
+
+  // ── Copy YAML ───────────────────────────────────────────────────
+  function copyYaml() {
+    const textarea = document.getElementById('yaml-output');
+    const btn = document.getElementById('copy-btn');
+
+    const showSuccess = () => {
+      btn.textContent = t('studio.copied') || '✓ COPIADO';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = t('studio.copy_yaml') || '✦ COPIAR YAML';
+        btn.classList.remove('copied');
+      }, 2000);
+    };
+
+    const fallbackCopy = () => {
+      // navigator.clipboard requiere contexto seguro (HTTPS o localhost).
+      // En HTTP plano sobre IP de LAN, document.execCommand('copy') es el
+      // único método que sigue funcionando en la mayoría de los browsers.
+      textarea.removeAttribute('readonly');
+      textarea.focus();
+      textarea.select();
+      let ok = false;
+      try {
+        ok = document.execCommand('copy');
+      } catch (e) {
+        ok = false;
+      }
+      textarea.setAttribute('readonly', '');
+      if (ok) {
+        showSuccess();
+      } else {
+        // Último recurso: dejar el texto seleccionado para que el usuario
+        // copie manualmente con Ctrl+C / mantener presionado.
+        btn.textContent = t('studio.selected_ctrl_c') || '⚠ SELECCIONADO — Ctrl+C';
+        setTimeout(() => { btn.textContent = t('studio.copy_yaml') || '✦ COPIAR YAML'; }, 3000);
+      }
+    };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textarea.value).then(showSuccess).catch(fallbackCopy);
+    } else {
+      fallbackCopy();
+    }
+  }
+
+  // ── Init ────────────────────────────────────────────────────────
+  async function loadObjectForEdit(filename, objId) {
+    try {
+      const res = await fetch(`/api/diagram/${filename}/object/${objId}`);
+      if (!res.ok) {
+        console.error('No se pudo cargar el objeto:', objId);
+        return;
+      }
+      const obj = await res.json();
+      const specs = obj.specs || {};
+      const shape = specs.shape || 'square';
+
+      // Set shape
+      currentShape = shape;
+      document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(`sh-${shape}`)?.classList.add('active');
+      renderSpecificFields();
+
+      // Base fields
+      document.getElementById('f-id').value = obj.id ?? nextId;
+      document.getElementById('f-name').value = obj.name || '';
+      document.getElementById('f-layer').value = obj.layer || 'main';
+      document.getElementById('f-width').value = specs.width ?? 60;
+      document.getElementById('f-height').value = specs.height ?? 60;
+      document.getElementById('f-angle').value = specs.angle ?? 0;
+      document.getElementById('f-pos-x').value = (specs.position?.[0]) ?? 100;
+      document.getElementById('f-pos-y').value = (specs.position?.[1]) ?? 100;
+      document.getElementById('f-from').value = specs.from || 'origin';
+
+      // Style fields
+      if (shape !== 'text' && shape !== 'line' && shape !== 'image') {
+        document.getElementById('f-line-color').value = specs.line_color || '#00d4ff';
+        if (specs.fill_color === 'none') {
+          document.getElementById('f-no-fill').checked = true;
+        } else {
+          document.getElementById('f-fill-color').value = specs.fill_color || '#0a0a1a';
+        }
+        document.getElementById('f-transparency').value = specs.fill_transparency ?? 0;
+      }
+
+      // Glow
+      if (specs.glow) {
+        document.getElementById('f-glow').checked = true;
+        document.getElementById('glow-fields').style.display = '';
+        document.getElementById('f-glow-color').value = specs.glow.color || '#00d4ff';
+        document.getElementById('f-glow-intensity').value = specs.glow.intensity ?? 10;
+      }
+
+      // Label
+      if (specs.label) {
+        document.getElementById('f-label').checked = true;
+        document.getElementById('label-fields').style.display = '';
+        document.getElementById('f-label-text').value = specs.label.text || '';
+        document.getElementById('f-label-color').value = specs.label.color || '#aaaaaa';
+        document.getElementById('f-label-size').value = specs.label.size ?? 11;
+        document.getElementById('f-label-font').value = specs.label.font || 'monospace';
+        if (specs.label.background) document.getElementById('f-label-bg').checked = true;
+      }
+
+      // Shape-specific fields
+      if (shape === 'line') {
+        document.getElementById('sf-long').value = specs.long ?? 80;
+        document.getElementById('sf-stroke').value = specs.stroke_width ?? 2;
+        document.getElementById('sf-line-color').value = specs.line_color || '#00d4ff';
+        document.getElementById('sf-ext1').value = specs.extreme_1 || 'null';
+        document.getElementById('sf-ext2').value = specs.extreme_2 || 'null';
+        if (specs.curly) {
+          document.getElementById('sf-curly').checked = true;
+          document.getElementById('curly-fields').style.display = '';
+          document.getElementById('sf-wave-length').value = specs.wave_length ?? 20;
+          document.getElementById('sf-wave-height').value = specs.wave_height ?? 6;
+        }
+      } else if (shape === 'polygon') {
+        document.getElementById('sf-sides').value = specs.sides ?? 6;
+      } else if (shape === 'arc') {
+        document.getElementById('sf-arc-length').value = specs.arc_length ?? 270;
+        document.getElementById('sf-arc-angle').value = specs.angle ?? 0;
+        document.getElementById('sf-stroke').value = specs.stroke_width ?? 2;
+        if (specs.pizza) document.getElementById('sf-pizza').checked = true;
+      } else if (shape === 'text') {
+        document.getElementById('sf-text').value = specs.text || '';
+        document.getElementById('sf-size').value = specs.size ?? 14;
+        document.getElementById('sf-color').value = specs.color || '#ffffff';
+        document.getElementById('sf-font').value = specs.font || 'monospace';
+        document.getElementById('sf-orientation').value = specs.orientation || 'horizontal';
+        if (specs.multiline) document.getElementById('sf-multiline').checked = true;
+        if (specs.background) document.getElementById('sf-bg').checked = true;
+      } else if (shape === 'image') {
+        document.getElementById('sf-image').value = specs.image || '';
+      }
+
+      // Links
+      if (obj.links && obj.links.length) {
+        obj.links.forEach(lnk => {
+          addLink();
+          const rows = document.querySelectorAll('.link-row');
+          const row = rows[rows.length - 1];
+          const toId = (lnk.to || 'id_2').replace('id_', '');
+          row.querySelector('.lnk-to').value = toId;
+          row.querySelector('.lnk-style').value = lnk.style || 'continuous';
+          row.querySelector('.lnk-color').value = lnk.color || '#ffffff';
+          row.querySelector('.lnk-width').value = lnk.width ?? 1;
+          if (lnk.from_side) row.querySelector('.lnk-from-side').value = lnk.from_side;
+          if (lnk.to_side) row.querySelector('.lnk-to-side').value = lnk.to_side;
+          if (lnk.from_offset) row.querySelector('.lnk-from-offset').value = lnk.from_offset;
+          if (lnk.to_offset) row.querySelector('.lnk-to-offset').value = lnk.to_offset;
+          if (lnk.from_anchor) row.querySelector('.lnk-from-anchor').value = lnk.from_anchor;
+          if (lnk.to_anchor) row.querySelector('.lnk-to-anchor').value = lnk.to_anchor;
+        });
+      }
+
+      update();
+    } catch (e) {
+      console.error('Error al cargar objeto para edición:', e);
+    }
+  }
+
+  // ── i18n ────────────────────────────────────────────────────────
+  let _i18n = {};
+
+  async function loadI18n() {
+    try {
+      const res = await fetch('/api/i18n');
+      if (res.ok) _i18n = await res.json();
+    } catch (e) {
+      console.warn('i18n load failed, using keys as fallback');
+    }
+  }
+
+  function t(path, vars = {}) {
+    // Navega el objeto por "a.b.c" y devuelve el string
+    const val = path.split('.').reduce((o, k) => (o && o[k] !== undefined ? o[k] : null), _i18n);
+    if (!val) return path; // fallback: la clave en sí
+    return Object.entries(vars).reduce((s, [k, v]) => s.replace(`{${k}}`, v), val);
+  }
+
+  function applyStudioI18n() {
+    const logo = document.querySelector('.logo');
+    if (logo) logo.textContent = t('app.studio_name');
+    const sub = document.querySelector('.logo-sub');
+    if (sub) sub.textContent = t('app.studio_tagline');
+    const copyBtn = document.getElementById('copy-btn');
+    if (copyBtn) copyBtn.textContent = t('studio.copy_yaml');
+    // Section titles
+    const sectionTitles = {
+      'sec-shape-title':    t('studio.sections.shape'),
+      'sec-base-title':     t('studio.sections.base'),
+      'sec-style-title':    t('studio.sections.style'),
+      'sec-specific-title': t('studio.sections.specific'),
+      'sec-glow-title':     t('studio.sections.glow'),
+      'sec-label-title':    t('studio.sections.label'),
+      'sec-links-title':    t('studio.sections.links'),
+      'sec-preview-title':  t('studio.sections.preview'),
+      'sec-yaml-title':     t('studio.sections.yaml'),
+      'btn-add-link':       t('studio.fields.add_link'),
+      'lbl-add-label':      t('studio.fields.add_label'),
+      'lbl-activate-glow':  t('studio.fields.activate_glow'),
+    };
+    Object.entries(sectionTitles).forEach(([id, text]) => {
+      const el = document.getElementById(id);
+      if (el && text && !text.includes('.')) el.textContent = text;
+    });
+    if (fromFile) {
+      const lbl = document.getElementById('from-label');
+      if (lbl) lbl.textContent = editId
+        ? t('studio.editing_label', { id: editId, file: fromFile })
+        : t('studio.from_label', { file: fromFile });
+    }
+    const shapeLabels = {
+      'sh-square': t('studio.shapes.square'),
+      'sh-circle': t('studio.shapes.circle'),
+      'sh-polygon': t('studio.shapes.polygon'),
+      'sh-line':   t('studio.shapes.line'),
+      'sh-arc':    t('studio.shapes.arc'),
+      'sh-text':   t('studio.shapes.text'),
+      'sh-image':  t('studio.shapes.image'),
+    };
+    Object.entries(shapeLabels).forEach(([id, text]) => {
+      const el = document.getElementById(id);
+      if (el && text !== id) el.textContent = text;
+    });
+  }
+
+  async function initStudio() {
+    await loadI18n();
+    applyStudioI18n();
+    renderSpecificFields();
+    if (editId && fromFile) {
+      loadObjectForEdit(fromFile, editId);
+    } else {
+      update();
+    }
+  }
+
+  initStudio();
+</script>
+</body>
+</html>

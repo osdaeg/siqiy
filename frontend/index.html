@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Siq'iy — Renderizador de Diagramas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:        #080c10;
+      --panel:     #0d1117;
+      --border:    #1e2d3d;
+      --accent:    #00d4ff;
+      --accent2:   #ff6b35;
+      --text:      #c9d1d9;
+      --text-dim:  #4a5568;
+      --text-bright: #e6edf3;
+      --mono:      'Share Tech Mono', monospace;
+      --sans:      'Rajdhani', sans-serif;
+      --glow:      0 0 12px rgba(0,212,255,0.4);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 0 24px;
+      height: 56px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .logo {
+      font-family: var(--mono);
+      font-size: 22px;
+      letter-spacing: 6px;
+      color: var(--accent);
+      text-shadow: var(--glow);
+      text-transform: uppercase;
+    }
+
+    .logo-sub {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 2px;
+      margin-top: -4px;
+    }
+
+    .header-sep {
+      width: 1px;
+      height: 32px;
+      background: var(--border);
+    }
+
+    .diagram-name {
+      font-family: var(--sans);
+      font-weight: 600;
+      font-size: 16px;
+      color: var(--text-bright);
+      letter-spacing: 1px;
+    }
+
+    .header-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-dim);
+      transition: all 0.3s;
+    }
+    .status-dot.ok { background: #00ff88; box-shadow: 0 0 8px #00ff88; }
+    .status-dot.error { background: #ff3333; box-shadow: 0 0 8px #ff3333; }
+    .status-dot.loading { background: var(--accent); box-shadow: var(--glow); animation: pulse 1s infinite; }
+
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    /* ── Layout ── */
+    .layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ── */
+    aside {
+      width: 240px;
+      flex-shrink: 0;
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    .diagram-list {
+      flex: 0 1 auto;
+      max-height: 40vh;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+
+    .diagram-list::-webkit-scrollbar { width: 4px; }
+    .diagram-list::-webkit-scrollbar-track { background: transparent; }
+    .diagram-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .diagram-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      cursor: pointer;
+      border-left: 2px solid transparent;
+      transition: all 0.15s;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .diagram-item:hover {
+      background: rgba(0,212,255,0.05);
+      color: var(--text);
+      border-left-color: var(--border);
+    }
+
+    .diagram-item.active {
+      background: rgba(0,212,255,0.08);
+      color: var(--accent);
+      border-left-color: var(--accent);
+      text-shadow: 0 0 8px rgba(0,212,255,0.5);
+    }
+
+    .diagram-item .icon {
+      opacity: 0.5;
+      font-size: 10px;
+    }
+    .diagram-item.active .icon { opacity: 1; }
+
+    .sidebar-footer {
+      border-top: 1px solid var(--border);
+      padding: 12px 16px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 8px 12px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+    }
+
+    .btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: inset 0 0 12px rgba(0,212,255,0.05);
+    }
+
+    /* ── Info Panel ── */
+    .info-panel {
+      border-top: 1px solid var(--border);
+      padding: 12px 16px 16px;
+      min-height: 120px;
+    }
+
+    .info-title {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-bottom: 4px;
+    }
+
+    .info-row span:last-child { color: var(--text); }
+
+    .objects-list {
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .objects-list::-webkit-scrollbar { width: 4px; }
+    .objects-list::-webkit-scrollbar-track { background: transparent; }
+    .objects-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ── Layers panel ── */
+    .layers-panel {
+      border-top: 1px solid var(--border);
+      padding: 12px 16px 16px;
+    }
+
+    .layer-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 0;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .layer-item:hover { color: var(--text); }
+
+    .layer-item.main-layer {
+      color: var(--text);
+      cursor: default;
+    }
+
+    .layer-checkbox {
+      width: 12px;
+      height: 12px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .layer-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .obj-chip {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-dim);
+      padding: 2px 6px;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      display: flex;
+      gap: 6px;
+    }
+
+    .obj-chip .obj-id { color: var(--accent2); }
+    .obj-chip .obj-edit {
+      margin-left: auto;
+      color: var(--text-dim);
+      cursor: pointer;
+      padding: 0 2px;
+      font-size: 10px;
+      opacity: 0.6;
+      transition: opacity 0.15s, color 0.15s;
+    }
+    .obj-chip .obj-edit:hover { opacity: 1; color: var(--accent); }
+
+    /* ── Canvas ── */
+    main {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+      flex-shrink: 0;
+    }
+
+    .tool-btn {
+      padding: 5px 12px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tool-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .zoom-display {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      min-width: 48px;
+      text-align: center;
+    }
+
+    .toolbar-sep { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
+
+    #canvas-wrap {
+      flex: 1;
+      overflow: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(circle at 20% 80%, rgba(0,212,255,0.03) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255,107,53,0.03) 0%, transparent 50%),
+        var(--bg);
+      position: relative;
+      cursor: grab;
+    }
+
+    #canvas-wrap:active { cursor: grabbing; }
+
+    #canvas-wrap::-webkit-scrollbar { width: 6px; height: 6px; }
+    #canvas-wrap::-webkit-scrollbar-track { background: transparent; }
+    #canvas-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    #svg-container {
+      transform-origin: center center;
+      transition: transform 0.1s ease;
+      filter: drop-shadow(0 4px 32px rgba(0,0,0,0.8));
+    }
+
+    #svg-container svg {
+      display: block;
+      max-width: none;
+    }
+
+    /* Grid overlay */
+    .grid-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .grid-overlay.visible { opacity: 0.4; }
+
+    /* Empty state */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      color: var(--text-dim);
+      font-family: var(--mono);
+    }
+
+    .empty-state .big {
+      font-size: 48px;
+      opacity: 0.2;
+    }
+
+    .empty-state p { font-size: 12px; letter-spacing: 2px; }
+
+    /* Error state */
+    .error-state {
+      background: rgba(255,51,51,0.05);
+      border: 1px solid rgba(255,51,51,0.2);
+      padding: 20px 24px;
+      max-width: 480px;
+      font-family: var(--mono);
+    }
+
+    .error-state h3 {
+      color: #ff3333;
+      font-size: 12px;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    .error-state pre {
+      font-size: 11px;
+      color: var(--text-dim);
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.6;
+    }
+
+    /* Export modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 28px 32px;
+      width: 360px;
+    }
+
+    .modal h2 {
+      font-family: var(--mono);
+      font-size: 13px;
+      letter-spacing: 3px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .export-options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .export-btn {
+      padding: 12px 16px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .export-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(0,212,255,0.05);
+    }
+
+    .export-btn .ext {
+      background: rgba(0,212,255,0.1);
+      color: var(--accent);
+      padding: 2px 6px;
+      font-size: 10px;
+      border-radius: 2px;
+    }
+
+    .modal-close {
+      width: 100%;
+      padding: 8px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+    }
+
+    .modal-close:hover { border-color: var(--border); color: var(--text); }
+
+    /* Coordinates display */
+    .coords {
+      position: absolute;
+      bottom: 12px;
+      right: 16px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-dim);
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">SIQ'IY</div>
+    <div class="logo-sub">DIBUJAR · QUECHUA</div>
+  </div>
+  <div class="header-sep"></div>
+  <div class="diagram-name" id="header-name">— sin selección —</div>
+  <div class="header-right">
+    <div class="status-dot" id="status-dot"></div>
+    <span id="status-text" style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:1px;"></span>
+  </div>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="sidebar-header" id="sidebar-diagrams-title">// diagramas</div>
+    <div class="diagram-list" id="diagram-list">
+      <div id="diagram-list-loading" style="padding:20px 16px;font-family:var(--mono);font-size:11px;color:var(--text-dim);">Cargando...</div>
+    </div>
+
+    <div class="layers-panel" id="layers-panel" style="display:none;">
+      <div class="info-title" id="layers-title">// capas</div>
+      <div id="layers-list"></div>
+    </div>
+
+    <div class="info-panel" id="info-panel" style="display:none;">
+      <div class="info-title" id="objects-title">// objetos</div>
+      <div class="objects-list" id="objects-list"></div>
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="btn" onclick="loadDiagrams()" id="btn-reload"></button>
+    </div>
+  </aside>
+
+  <main>
+    <div class="toolbar">
+      <button class="tool-btn" onclick="zoomIn()">+ ZOOM</button>
+      <span class="zoom-display" id="zoom-display">100%</span>
+      <button class="tool-btn" onclick="zoomOut()">− ZOOM</button>
+      <button class="tool-btn" onclick="resetZoom()">⊡ FIT</button>
+      <div class="toolbar-sep"></div>
+      <button class="tool-btn" onclick="toggleGrid()" id="btn-grid">⊞ GRILLA</button>
+      <div class="toolbar-sep"></div>
+      <button class="tool-btn" onclick="openStudio()" id="btn-studio"></button>
+      <button class="tool-btn" onclick="window.open('/library-studio.html', '_blank')" id="btn-library"></button>
+      <div class="toolbar-sep"></div>
+      <button class="tool-btn" onclick="openInEditor()" id="btn-editor"></button>
+      <button class="tool-btn" onclick="saveFromEditor()" id="btn-from-editor">⇩ GUARDAR DE EDITOR</button>
+      <div class="toolbar-sep"></div>
+      <button class="tool-btn" onclick="openExport()" id="btn-export"></button>
+    </div>
+
+    <div id="canvas-wrap">
+      <div class="grid-overlay" id="grid-overlay"></div>
+      <div id="svg-container">
+        <div class="empty-state">
+          <div class="big">◈</div>
+          <p id="main-empty-text">SELECCIONÁ UN DIAGRAMA</p>
+        </div>
+      </div>
+      <div class="coords" id="coords"></div>
+    </div>
+  </main>
+</div>
+
+<!-- Export Modal -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeExport(event)">
+  <div class="modal">
+    <h2 id="export-modal-title">// exportar</h2>
+    <div class="export-options">
+      <button class="export-btn" onclick="exportSVG()">
+        <span class="ext">SVG</span>
+        <span id="export-svg-desc">Gráfico vectorial escalable</span>
+      </button>
+      <button class="export-btn" onclick="exportPNG()">
+        <span class="ext">PNG</span>
+        <span id="export-png-desc">Imagen rasterizada (2x)</span>
+      </button>
+      <button class="export-btn" onclick="exportPDF()">
+        <span class="ext">PDF</span>
+        <span id="export-pdf-desc">Documento PDF (impresión)</span>
+      </button>
+      <button class="export-btn" onclick="exportDia()">
+        <span class="ext">DIA</span>
+        Dia Diagram Editor
+      </button>
+    </div>
+    <button class="modal-close" onclick="closeExport()" id="btn-export-cancel">✕ CANCELAR</button>
+  </div>
+</div>
+
+<script>
+  let currentFile = null;
+  let currentSVGString = null;
+  let currentDiagramInfo = null;
+  let zoom = 1.0;
+  let gridVisible = false;
+
+  const svgContainer = document.getElementById('svg-container');
+  const zoomDisplay = document.getElementById('zoom-display');
+  const statusDot = document.getElementById('status-dot');
+  const statusText = document.getElementById('status-text');
+  const headerName = document.getElementById('header-name');
+
+  // ── Status ──────────────────────────────────
+  function setStatus(state, msg) {
+    statusDot.className = 'status-dot ' + state;
+    statusText.textContent = msg;
+  }
+
+  // ── Diagram list ────────────────────────────
+  async function loadDiagrams() {
+    setStatus('loading', t('status.loading'));
+    try {
+      const res = await fetch('/api/diagrams');
+      const data = await res.json();
+      const list = document.getElementById('diagram-list');
+
+      if (!data.diagrams.length) {
+        list.innerHTML = `<div style="padding:20px 16px;font-family:var(--mono);font-size:11px;color:var(--text-dim);">${t('sidebar.no_diagrams')}</div>`;
+        setStatus('', '');
+        return;
+      }
+
+      list.innerHTML = data.diagrams.map(f => `
+        <div class="diagram-item ${f === currentFile ? 'active' : ''}" onclick="loadDiagram('${f}')">
+          <span class="icon">◈</span>
+          <span>${f}</span>
+        </div>
+      `).join('');
+
+      setStatus('ok', t('sidebar.n_diagrams', {n: data.diagrams.length, s: data.diagrams.length !== 1 ? 's' : ''}));
+    } catch (e) {
+      setStatus('error', t('status.network_error'));
+    }
+  }
+
+  // ── Load & render diagram ───────────────────
+  async function loadDiagram(filename) {
+    currentFile = filename;
+    setStatus('loading', 'renderizando...');
+    headerName.textContent = filename;
+
+    // Update active state in list
+    document.querySelectorAll('.diagram-item').forEach(el => {
+      el.classList.toggle('active', el.querySelector('span:last-child').textContent === filename);
+    });
+
+    try {
+      // Fetch SVG
+      const svgRes = await fetch(`/api/diagram/${filename}`);
+      if (!svgRes.ok) {
+        const err = await svgRes.json();
+        showError(err.detail || 'Error desconocido');
+        setStatus('error', 'error de parseo');
+        return;
+      }
+
+      currentSVGString = await svgRes.text();
+      svgContainer.innerHTML = currentSVGString;
+
+      // Fetch info
+      const infoRes = await fetch(`/api/diagram/${filename}/info`);
+      if (infoRes.ok) {
+        const info = await infoRes.json();
+        headerName.textContent = `${info.name}  ·  ${filename}`;
+        currentDiagramInfo = info;
+        showInfo(info);
+      }
+
+      resetZoom();
+      setStatus('ok', 'listo');
+    } catch (e) {
+      showError(e.message);
+      setStatus('error', 'error');
+    }
+  }
+
+  function showError(msg) {
+    svgContainer.innerHTML = `
+      <div class="error-state">
+        <h3>${t('sidebar.validation_error')}</h3>
+        <pre>${escapeHtml(msg)}</pre>
+      </div>`;
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function showInfo(info) {
+    // Objects panel
+    const panel = document.getElementById('info-panel');
+    const list = document.getElementById('objects-list');
+    panel.style.display = 'block';
+    list.innerHTML = info.objects.map(o =>
+      `<div class="obj-chip">
+        <span class="obj-id">#${o.id}</span>
+        <span>${o.name}</span>
+        <span style="opacity:.5">${o.shape}</span>
+        <span class="obj-edit" onclick="openInStudio(${o.id})" title="Editar en Studio">✎</span>
+      </div>`
+    ).join('');
+
+    // Layers panel
+    const layersPanel = document.getElementById('layers-panel');
+    const layersList = document.getElementById('layers-list');
+    const layers = info.layers || ['main'];
+
+    if (layers.length <= 1) {
+      layersPanel.style.display = 'none';
+      return;
+    }
+
+    layersPanel.style.display = 'block';
+    layersList.innerHTML = layers.map(layer => {
+      if (layer === 'main') {
+        return `<div class="layer-item main-layer">
+          <div class="layer-dot"></div>
+          <span>${layer}</span>
+          <span style="margin-left:auto;font-size:9px;opacity:.4">${t('sidebar.always_visible')}</span>
+        </div>`;
+      }
+      return `<div class="layer-item">
+        <input type="checkbox" class="layer-checkbox" id="layer-${layer}"
+          checked onchange="toggleLayer('${layer}', this.checked)"/>
+        <span onclick="document.getElementById('layer-${layer}').click()">${layer}</span>
+      </div>`;
+    }).join('');
+  }
+
+  function getHiddenLayers() {
+    // Returns a Set of currently hidden layer names
+    const hidden = new Set();
+    document.querySelectorAll('.layer-checkbox').forEach(cb => {
+      if (!cb.checked) hidden.add(cb.id.replace('layer-', ''));
+    });
+    return hidden;
+  }
+
+  function toggleLayer(layerName, visible) {
+    const svg = document.querySelector('#svg-container svg');
+    if (!svg) return;
+
+    const hiddenLayers = getHiddenLayers();
+
+    // Toggle objects in this layer
+    svg.querySelectorAll(`[data-layer="${layerName}"]`).forEach(el => {
+      el.style.display = visible ? '' : 'none';
+    });
+
+    // Recalculate ALL links based on current hidden layers state
+    // A link is visible only if BOTH its layers are visible
+    svg.querySelectorAll('[data-layers]').forEach(el => {
+      const layers = el.getAttribute('data-layers').split(' ');
+      const anyHidden = layers.some(l => hiddenLayers.has(l));
+      el.style.display = anyHidden ? 'none' : '';
+    });
+  }
+
+  // ── Zoom ────────────────────────────────────
+  function applyZoom() {
+    svgContainer.style.transform = `scale(${zoom})`;
+    zoomDisplay.textContent = Math.round(zoom * 100) + '%';
+  }
+
+  function zoomIn()  { zoom = Math.min(zoom + 0.15, 4.0); applyZoom(); }
+  function zoomOut() { zoom = Math.max(zoom - 0.15, 0.15); applyZoom(); }
+  function resetZoom() { zoom = 1.0; applyZoom(); }
+
+  document.getElementById('canvas-wrap').addEventListener('wheel', (e) => {
+    e.preventDefault();
+    if (e.deltaY < 0) zoomIn(); else zoomOut();
+  }, { passive: false });
+
+  // ── Grid ────────────────────────────────────
+  function toggleGrid() {
+    gridVisible = !gridVisible;
+    document.getElementById('grid-overlay').classList.toggle('visible', gridVisible);
+  }
+
+  // ── Drag to pan ─────────────────────────────
+  let isDragging = false, startX, startY, scrollLeft, scrollTop;
+  const wrap = document.getElementById('canvas-wrap');
+
+  wrap.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    startX = e.pageX - wrap.offsetLeft;
+    startY = e.pageY - wrap.offsetTop;
+    scrollLeft = wrap.scrollLeft;
+    scrollTop = wrap.scrollTop;
+  });
+
+  wrap.addEventListener('mouseleave', () => isDragging = false);
+  wrap.addEventListener('mouseup', () => isDragging = false);
+  wrap.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const x = e.pageX - wrap.offsetLeft;
+    const y = e.pageY - wrap.offsetTop;
+    wrap.scrollLeft = scrollLeft - (x - startX);
+    wrap.scrollTop = scrollTop - (y - startY);
+  });
+
+  // Coordinates display
+  wrap.addEventListener('mousemove', (e) => {
+    const rect = svgContainer.getBoundingClientRect();
+    const x = Math.round((e.clientX - rect.left) / zoom);
+    const y = Math.round((e.clientY - rect.top) / zoom);
+    document.getElementById('coords').textContent = `x:${x}  y:${y}`;
+  });
+
+  // ── Export ──────────────────────────────────
+  function openExport() {
+    if (!currentSVGString) return;
+    document.getElementById('modal-overlay').classList.add('open');
+  }
+
+  function closeExport(e) {
+    if (!e || e.target === document.getElementById('modal-overlay')) {
+      document.getElementById('modal-overlay').classList.remove('open');
+    }
+  }
+
+  function exportSVG() {
+    if (!currentSVGString) return;
+    const blob = new Blob([currentSVGString], {type: 'image/svg+xml'});
+    download(blob, currentFile.replace(/\.ya?ml$/, '.svg'));
+    closeExport();
+  }
+
+  async function inlineImagesInSVG(svgString) {
+    // Reemplaza todos los href de <image> por data URLs base64
+    // para que el canvas pueda dibujarlos sin restricciones de CORS/blob URL
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgString, 'image/svg+xml');
+    const images = doc.querySelectorAll('image');
+
+    await Promise.all([...images].map(async (imgEl) => {
+      const href = imgEl.getAttribute('href') || imgEl.getAttribute('xlink:href') || '';
+      if (!href || href.startsWith('data:')) return; // ya es data URL, saltar
+      try {
+        const res = await fetch(href);
+        const blob = await res.blob();
+        const dataUrl = await new Promise(resolve => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
+        });
+        imgEl.setAttribute('href', dataUrl);
+        imgEl.removeAttribute('xlink:href');
+      } catch (e) {
+        console.warn('No se pudo incrustar imagen:', href, e);
+      }
+    }));
+
+    return new XMLSerializer().serializeToString(doc);
+  }
+
+  async function exportPNG() {
+    if (!currentSVGString) return;
+    const svg = svgContainer.querySelector('svg');
+    const w = svg.getAttribute('width');
+    const h = svg.getAttribute('height');
+    const scale = 2;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = w * scale;
+    canvas.height = h * scale;
+    const ctx = canvas.getContext('2d');
+
+    // Incrustar imágenes como data URLs antes de convertir a blob
+    const inlinedSVG = await inlineImagesInSVG(currentSVGString);
+
+    const img = new Image();
+    const blob = new Blob([inlinedSVG], {type: 'image/svg+xml'});
+    const url = URL.createObjectURL(blob);
+
+    img.onload = () => {
+      ctx.scale(scale, scale);
+      ctx.drawImage(img, 0, 0);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(b => {
+        download(b, currentFile.replace(/\.ya?ml$/, '.png'));
+        closeExport();
+      });
+    };
+    img.onerror = (e) => {
+      console.error('Error al renderizar SVG en canvas:', e);
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  }
+
+  function exportDia() {
+    if (!currentFile) return;
+    const url = `/api/diagram/${currentFile}/export/dia`;
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = currentFile.replace(/\.ya?ml$/, '.dia');
+    a.click();
+    closeExport();
+  }
+
+  function exportPDF() {
+    if (!currentSVGString) return;
+    const svg = svgContainer.querySelector('svg');
+    const w = parseFloat(svg.getAttribute('width'));
+    const h = parseFloat(svg.getAttribute('height'));
+
+    // Extraer el color de fondo del SVG (el primer <rect> con fill que no sea "none")
+    const bgRect = svg.querySelector('rect[fill]:not([fill="none"])');
+    const bgColor = bgRect ? bgRect.getAttribute('fill') : '#ffffff';
+
+    const win = window.open('', '_blank');
+    win.document.write(`<!DOCTYPE html><html><head><title>${currentFile}</title>
+      <style>
+        @page { size: ${w}px ${h}px; margin: 0; }
+        body {
+          margin: 0; padding: 0;
+          background-color: ${bgColor};
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        svg { display: block; }
+      </style></head><body>
+      ${currentSVGString}
+      <script>window.onload=()=>{window.print();window.close();}<\/script>
+      </body></html>`);
+    win.document.close();
+    closeExport();
+  }
+
+  function download(blob, filename) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  async function openInEditor() {
+    if (!currentFile) {
+      setStatus('error', t('status.no_diagram'));
+      return;
+    }
+    setStatus('loading', t('status.opening_editor'));
+    try {
+      const res = await fetch(`/api/diagram/${currentFile}/editor/open`, { method: 'POST' });
+      if (!res.ok) {
+        const err = await res.json();
+        setStatus('error', t('status.error'));
+        alert('Error al abrir el editor: ' + (err.detail || 'desconocido'));
+        return;
+      }
+      const data = await res.json();
+      window.open(data.url, '_blank');
+      setStatus('ok', t('status.ok'));
+    } catch (e) {
+      setStatus('error', t('status.network_error'));
+    }
+  }
+
+  async function saveFromEditor() {
+    if (!currentFile) {
+      setStatus('error', t('status.no_diagram'));
+      return;
+    }
+    if (!confirm(t("editor.confirm_save", {file: currentFile}))) {
+      return;
+    }
+    setStatus('loading', t('status.saving'));
+    try {
+      const res = await fetch(`/api/diagram/${currentFile}/editor/save`, { method: 'POST' });
+      if (!res.ok) {
+        const err = await res.json();
+        setStatus('error', t('status.error'));
+        alert('Error al guardar desde el editor: ' + (err.detail || 'desconocido'));
+        return;
+      }
+      setStatus('ok', t('sidebar.ready') || 'ready');
+      await loadDiagram(currentFile);
+    } catch (e) {
+      setStatus('error', t('status.network_error'));
+    }
+  }
+
+  async function openInStudio(objId) {
+    if (!currentFile) return;
+    const params = new URLSearchParams({
+      from: currentFile,
+      edit_id: objId,
+    });
+    window.open('/studio.html?' + params.toString(), '_blank');
+  }
+
+  function openStudio() {
+    const nextId = currentDiagramInfo
+      ? Math.max(...currentDiagramInfo.objects.map(o => o.id)) + 1
+      : 1;
+    const params = new URLSearchParams();
+    if (currentFile) params.set('from', currentFile);
+    params.set('next_id', nextId);
+    window.open('/studio.html?' + params.toString(), '_blank');
+  }
+
+  // ── i18n ────────────────────────────────────────────────────────
+  let _i18n = {};
+
+  async function loadI18n() {
+    try {
+      const res = await fetch('/api/i18n');
+      if (res.ok) _i18n = await res.json();
+    } catch (e) {
+      console.warn('i18n load failed, using keys as fallback');
+    }
+  }
+
+  function t(path, vars = {}) {
+    // Navega el objeto por "a.b.c" y devuelve el string
+    const val = path.split('.').reduce((o, k) => (o && o[k] !== undefined ? o[k] : null), _i18n);
+    if (!val) return path; // fallback: la clave en sí
+    return Object.entries(vars).reduce((s, [k, v]) => s.replace(`{${k}}`, v), val);
+  }
+
+  // ── Init ────────────────────────────────────
+  async function applyI18n() {
+    await loadI18n();
+    const ids = {
+      'btn-reload':             t('toolbar.reload'),
+      'btn-studio':             t('toolbar.studio'),
+      'btn-library':            t('toolbar.library'),
+      'btn-editor':             t('toolbar.editor'),
+      'btn-from-editor':        t('toolbar.save_from_editor'),
+      'btn-export':             t('toolbar.export'),
+      'btn-grid':               t('toolbar.grid'),
+      'sidebar-diagrams-title': t('sidebar.diagrams'),
+      'diagram-list-loading':   t('sidebar.loading'),
+      'export-modal-title':     t('export.title'),
+      'btn-export-cancel':      t('export.close'),
+      'main-empty-text':        t('sidebar.select_diagram'),
+      'export-svg-desc':        t('export.svg_desc'),
+      'export-png-desc':        t('export.png_desc'),
+      'export-pdf-desc':        t('export.pdf_desc'),
+      'layers-title':           t('sidebar.layers'),
+      'objects-title':          t('sidebar.objects'),
+      'header-name':            t('sidebar.no_selection'),
+    };
+    Object.entries(ids).forEach(([id, text]) => {
+      const el = document.getElementById(id);
+      if (el && text && !text.includes('.')) el.textContent = text;
+    });
+  }
+
+  applyI18n().then(() => loadDiagrams());
+</script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+services:
+  siqiy:
+    build: .
+    container_name: siqiy
+    restart: no
+    ports:
+      - "${NISQA_PORT:-7700}:8000"
+    volumes:
+      - ./diagrams:/diagrams
+      - ./images:/images
+      - ./frontend:/frontend
+      - ./libraries:/libraries
+      - ./fonts:/fonts      
+      - ./locales:/locales
+    environment:
+      - DIAGRAMS_DIR=/diagrams
+      - IMAGES_DIR=/images
+      - LIBRARIES_DIR=/libraries
+      - FONTS_DIR=/fonts
+      - ETHERPAD_INTERNAL_URL=http://etherpad:9001
+      - ETHERPAD_PUBLIC_URL=http://192.168.88.100:9001
+      - ETHERPAD_API_KEY=85629b8c766f837ce906a0722ca217de7ec655e4897f4ae655206f66b2a1c527
+      - SIQIY_LANG=fr
+    networks:
+      - GeneralNetwork
+
+networks:
+  GeneralNetwork:
+    external: true

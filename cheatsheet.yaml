@@ -1,0 +1,350 @@
+# ============================================================
+# SIQ'IY v1.0 — Cheatsheet de sintaxis YAML
+# "siq'iy" = dibujar en quechua
+# ============================================================
+
+# ── Estructura raíz ─────────────────────────────────────────
+
+diagram:
+  name: Nombre del diagrama
+  background:
+    type: solid          # solid | image
+    color: "#1a1a2e"
+    # file: fondo.png    # solo para type: image, archivo en /images/
+  includes:
+    - /libraries/electrical.yaml
+  objects:
+    - ...
+
+
+# ── Reglas obligatorias ──────────────────────────────────────
+# * Debe existir id: 1, y su from siempre es origin
+# * position: [x, y] en píxeles
+# * from: origin → desde esquina sup izq del canvas
+# * from: id_N   → relativo al CENTRO del objeto N
+# * Colores siempre en hex: "#rrggbb"
+
+
+# ── Objeto completo ──────────────────────────────────────────
+
+    - id: 1
+      name: Mi objeto
+      layer: main              # capa (default: main, nunca se oculta)
+      specs:
+        shape: square
+        height: 60
+        width: 60
+        position: [100, 100]
+        from: origin
+        line_color: "#00d4ff"
+        fill_color: "#0a0a1a"  # none | hex
+        fill_transparency: 20  # 0-100
+        angle: 0
+        glow:
+          color: "#00d4ff"
+          intensity: 12
+        label:
+          text: "Servidor"
+          font: monospace
+          color: "#aaaaaa"
+          size: 11
+
+      link:                    # singular
+        to: id_2
+        style: continuous      # continuous | dashed | dotted
+        color: "#ffffff"
+        width: 2
+        from_anchor: border    # center | border
+        to_anchor: border
+        from_side: E           # N|S|E|W — sobreescribe from_anchor
+        to_side: W
+        from_offset: -0.2      # -0.5 a 0.5, 0=centro del borde
+        to_offset: 0.2
+        glow:
+          color: "#ffffff"
+          intensity: 6
+        label:
+          text: "443/tcp"
+          color: "#aaaaaa"
+          size: 9
+          font: monospace
+          position: 0.5        # 0=salida, 0.5=mitad, 1=llegada
+          angle: 0
+
+      links:                   # múltiples
+        - to: id_2
+          style: continuous
+          color: "#ff6b35"
+          width: 2
+          from_side: E
+          to_side: W
+          label:
+            text: "http"
+            size: 8
+            position: 0.3
+        - to: id_3
+          style: dashed
+          color: "#00d4ff"
+          width: 1
+
+
+# ── Shapes nativos ───────────────────────────────────────────
+
+# square / rectangle
+        shape: square
+        height: 60
+        width: 80
+
+# circle (width != height → elipse)
+        shape: circle
+        height: 60
+        width: 60
+
+# polygon
+        shape: polygon
+        sides: 6               # 3=triángulo, 5=pentágono, 6=hexágono
+        angle: 0                # 0° = base horizontal
+
+# line
+        shape: line
+        long: 80
+        stroke_width: 2
+        angle: 45
+        extreme_1: null         # null | arrow_in | arrow_out | dot
+        extreme_2: arrow_out
+        # arrow_in  ◄── punta hacia adentro
+        # arrow_out ──► punta hacia afuera
+        curly: false            # 〜 línea ondulada
+        wave_length: 20         # longitud de cada onda en px (solo si curly)
+        wave_height: 6          # amplitud de la onda en px (solo si curly)
+
+# arc
+        shape: arc
+        height: 60
+        width: 60
+        arc_length: 270         # grados (1-359)
+        angle: 0                # inicio (0=derecha, 90=abajo)
+        stroke_width: 2
+        pizza: false            # true = porción de torta 🍕
+        fill_color: "#ffffff"   # solo si pizza: true
+        fill_transparency: 60
+
+# text
+        shape: text
+        text: "Ejemplo"
+        size: 14                # font size en px
+        height: 20               # si no hay size, usa height * 0.8
+        width: 120
+        color: "#ffffff"
+        font: monospace         # también acepta fuentes custom en /fonts/
+        angle: 0
+        orientation: horizontal  # horizontal | vertical
+        transparency: 0
+        multiline: false         # separar líneas con \n en el texto
+
+# image
+        shape: image
+        image: servidor.png     # archivo en /images/
+        height: 60
+        width: 60
+        angle: 0
+
+
+# ── Capas ────────────────────────────────────────────────────
+# layer: main     → default, siempre visible, sin checkbox
+# layer: arr      → nombre libre, toggle en el panel del frontend
+# Al ocultar una capa: se ocultan sus objetos + todos los links
+# que tengan un extremo en esa capa (en cualquiera de los dos lados)
+
+
+# ── Routing de links ─────────────────────────────────────────
+# Sin from_side/to_side: algoritmo automático (2 dobleces)
+# from_side: E + to_side: W  → 1 doblez (camino directo)
+# from_side: N + to_side: S  → 1 doblez
+# from_side: E + to_side: E  → 2 dobleces con punto intermedio
+# from_offset/to_offset: ajuste manual del punto en el borde
+# Con múltiples links sin from_side, se reparten automáticamente
+
+
+# ── Fuentes custom ───────────────────────────────────────────
+# Cualquier .ttf/.otf/.woff/.woff2 en /fonts/ se usa por nombre
+# de archivo (sin extensión) en cualquier atributo "font":
+#   font: ShareTechMono
+# Se inyectan como @font-face en el SVG, funcionan offline y en
+# exports PDF/PNG.
+
+
+# ── Librerías — uso en diagrama ──────────────────────────────
+#   shape: lamp                ← nombre del símbolo
+#   height: 40
+#   width: 40
+#   line_color: "#ffff00"      ← reemplaza inherit
+#   fill_color: "#ffff00"
+#   fill_transparency: 20
+# Proporciones: respetar ratio del símbolo base, salvo que el
+# símbolo tenga keep_ratio: true (ver más abajo)
+# Placeholder: rectángulo rojo con X si el símbolo no existe
+
+
+# ── Librerías — definición ───────────────────────────────────
+
+library:
+  name: mi_libreria
+  symbols:
+    - name: lamp
+      width: 60
+      height: 60
+      keep_ratio: false   # true = fuerza la proporción base aunque
+                           # el diagrama pida otro width/height
+                           # (el alto se calcula en base al ancho pedido)
+      shapes:
+        # Tipos: circle | square | rectangle | line | arc | text | image | symbol
+
+        - type: circle
+          x: 0               # posición relativa al bounding del símbolo
+          y: 0
+          width: 60
+          height: 60
+          line_color: inherit  # inherit | none | "#hex"
+          fill_color: inherit
+          fill_transparency: inherit  # inherit | 0-100
+
+        - type: line
+          cx: 30             # centro X relativo al símbolo
+          cy: 30
+          length: 42
+          angle: 45
+          line_color: inherit
+          stroke_width: 1.5
+
+        - type: arc
+          x: 0
+          y: 0
+          width: 60
+          height: 60
+          arc_length: 90
+          angle: 0
+          pizza: false
+          line_color: inherit
+          fill_color: inherit
+          fill_transparency: inherit
+          stroke_width: 1.5
+
+        - type: text
+          x: 30              # posición relativa (centro del texto)
+          y: 50
+          text: "M"          # texto fijo, no heredable
+          font: monospace
+          font_size: 14
+          line_color: inherit
+
+        - type: image
+          x: 0
+          y: 0
+          width: 60
+          height: 60
+          image: icono.png   # archivo en /images/
+
+        - type: symbol        # reutilizar otro símbolo de la librería
+          symbol: otro_simbolo
+          x: 0
+          y: 0
+          width: 30
+          height: 30
+          line_color: inherit
+          fill_color: inherit
+          fill_transparency: inherit
+          # Detecta ciclos (A usa A): muestra placeholder naranja
+
+        - type: circle         # subtract: recorta TODOS los shapes
+          x: 15                # definidos antes (no afecta a los
+          y: 15                # que vienen después)
+          width: 30
+          height: 30
+          subtract: true
+
+
+# ── Herramientas visuales ─────────────────────────────────────
+#
+# SIQ'IY STUDIO (botón "✦ STUDIO")
+#   Diseña un objeto de diagrama visualmente: elegís shape, configurás
+#   atributos con controles (color picker, checkboxes, etc.), vista previa
+#   en vivo, y copiás el YAML resultante al portapapeles para pegarlo en
+#   el diagrama. Soporta múltiples links con stubs visuales en el preview
+#   (rayitas cortas que muestran from_side/to_side).
+#
+# LIBRARY STUDIO (botón "📚 LIBRARY")
+#   Diseña símbolos de librería completos: lista de símbolos, cada uno
+#   con su lista de shapes editable (agregar/quitar/duplicar), controles
+#   por tipo de shape, soporte para inherit/none/fijo en colores y
+#   transparencia, toggle de subtract, reutilización de otros símbolos,
+#   vista previa en vivo, y guardado directo del archivo de librería
+#   completo en /libraries/.
+#
+# EDITOR REMOTO (botón "✎ EDITOR" / "⇩ TRAER DE EDITOR")
+#   Disponible en ambas herramientas y en el visor principal. Abre el
+#   YAML actual (diagrama o librería) en un pad de Etherpad para edición
+#   colaborativa o desde otro dispositivo. "TRAER DE EDITOR" trae el
+#   contenido editado y sobreescribe el archivo, validando que sea YAML
+#   correcto antes de guardar.
+
+
+# ── Exportación ────────────────────────────────────────────────
+# SVG  → vectorial, fiel al 100%
+# PNG  → rasterizado 2x, vía canvas del browser
+# PDF  → impresión, vía diálogo de impresión del browser
+# DIA  → Dia Diagram Editor (XML gzipeado con namespace dia:)
+#   Mapeo: square/rectangle → Geometric - Perfect Square
+#          circle           → Geometric - Perfect Circle
+#          polygon (3-8 lados) → Geometric - Pentagon/Hexagon/etc.
+#          text             → Standard - Text
+#          line             → Standard - Line / PolyLine
+#          image            → Standard - Image (requiere copiar imágenes
+#                             a una carpeta images/ junto al .dia)
+#          arc, símbolos de librería → placeholder Geometric - Perfect
+#                             Square con el nombre del objeto como texto
+#   Capas de Siq'iy → capas nativas de Dia. Links en capa "links" aparte.
+
+
+# ── Ejemplos rápidos ─────────────────────────────────────────
+
+# Arandela (subtract):
+#   - type: circle
+#     width: 60
+#     height: 60
+#     fill_color: inherit
+#   - type: circle
+#     x: 15
+#     y: 15
+#     width: 30
+#     height: 30
+#     subtract: true
+
+# Pizza (cuarto de círculo):
+#   shape: arc
+#   width: 80
+#   height: 80
+#   arc_length: 90
+#   pizza: true
+#   fill_color: "#00d4ff"
+#   fill_transparency: 50
+
+# Cable ondulado:
+#   shape: line
+#   long: 200
+#   stroke_width: 2
+#   line_color: "#00d4ff"
+#   curly: true
+#   wave_length: 25
+#   wave_height: 8
+
+# Link con label a mitad de camino:
+#   link:
+#     to: id_2
+#     from_side: E
+#     to_side: W
+#     color: "#00d4ff"
+#     label:
+#       text: "443/tcp"
+#       size: 9
+#       position: 0.5

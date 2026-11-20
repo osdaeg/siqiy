@@ -1,0 +1,195 @@
+library:
+  name: electrical
+  symbols:
+  - name: lamp
+    width: 60
+    height: 60
+    shapes:
+    - type: circle
+      x: 0
+      y: 0
+      width: 60
+      height: 60
+      line_color: inherit
+      fill_color: none
+    - type: line
+      cx: 30
+      cy: 30
+      length: 42
+      angle: 45
+      line_color: inherit
+      stroke_width: 1.5
+    - type: line
+      cx: 30
+      cy: 30
+      length: 42
+      angle: 135
+      line_color: inherit
+      stroke_width: 1.5
+  - name: lamp_green
+    width: 60
+    height: 60
+    shapes:
+    - type: circle
+      x: 0
+      y: 0
+      width: 60
+      height: 60
+      line_color: '#00cc44'
+      fill_color: none
+    - type: circle
+      x: 10
+      y: 10
+      width: 60
+      height: 60
+      line_color: '#00cc44'
+      fill_color: none
+    - type: line
+      cx: 30
+      cy: 30
+      length: 42
+      angle: 45
+      line_color: '#00cc44'
+      stroke_width: 1.5
+    - type: line
+      cx: 30
+      cy: 30
+      length: 42
+      angle: 135
+      line_color: '#00cc44'
+      stroke_width: 1.5
+  - name: lamp_red
+    width: 60
+    height: 60
+    shapes:
+    - type: circle
+      x: 0
+      y: 0
+      width: 60
+      height: 60
+      line_color: '#ff3333'
+      fill_color: none
+    - type: line
+      cx: 30
+      cy: 30
+      length: 42
+      angle: 45
+      line_color: '#ff3333'
+      stroke_width: 1.5
+    - type: line
+      cx: 30
+      cy: 30
+      length: 42
+      angle: 135
+      line_color: '#ff3333'
+      stroke_width: 1.5
+  - name: motor
+    width: 60
+    height: 60
+    shapes:
+    - type: circle
+      x: 0
+      y: 0
+      width: 60
+      height: 60
+      line_color: inherit
+      fill_color: none
+  - name: resistor
+    width: 40
+    height: 20
+    shapes:
+    - type: rectangle
+      x: 0
+      y: 0
+      width: 40
+      height: 20
+      line_color: inherit
+      fill_color: none
+  - name: switch_open
+    width: 60
+    height: 30
+    shapes:
+    - type: line
+      cx: 15
+      cy: 15
+      length: 10
+      angle: 0
+      line_color: inherit
+      stroke_width: 2
+    - type: line
+      cx: 50
+      cy: 15
+      length: 10
+      angle: 0
+      line_color: inherit
+      stroke_width: 2
+    - type: line
+      cx: 32
+      cy: 12
+      length: 17
+      angle: 30
+      line_color: inherit
+      stroke_width: 2
+  - name: transformador
+    width: 60
+    height: 60
+    keep_ratio: false
+    shapes:
+    - type: line
+      cx: 0
+      cy: 0
+      length: 20
+      angle: 90
+      line_color: inherit
+      stroke_width: 1.5
+      curly: true
+      wave_length: 5
+      wave_height: 3
+    - type: arc
+      x: 0
+      y: 5
+      width: 10
+      height: 10
+      arc_length: 90
+      angle: 90
+      pizza: false
+      line_color: inherit
+      fill_color: inherit
+      fill_transparency: inherit
+      stroke_width: 1.5
+    - type: arc
+      x: 10
+      y: 5
+      width: 10
+      height: 10
+      arc_length: 90
+      angle: 90
+      pizza: false
+      line_color: inherit
+      fill_color: inherit
+      fill_transparency: inherit
+      stroke_width: 1.5
+    - type: arc
+      x: 0
+      y: 5
+      width: 10
+      height: 10
+      arc_length: 90
+      angle: 0
+      pizza: false
+      line_color: inherit
+      fill_color: inherit
+      fill_transparency: inherit
+      stroke_width: 1.5
+    - type: arc
+      x: 10
+      y: 5
+      width: 10
+      height: 10
+      arc_length: 90
+      angle: 0
+      pizza: false
+      line_color: inherit
+      fill_color: inherit
+      fill_transparency: inherit
+      stroke_width: 1.5
