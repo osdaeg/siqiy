@@ -5,8 +5,11 @@
 diagrams/*
 !diagrams/.gitkeep
 
-imates/*
-!imates/.gitkeep
+images/*
+!images/.gitkeep
+
+fonts/*
+!fonts/.gitkeep
 
 README.md.github
 
